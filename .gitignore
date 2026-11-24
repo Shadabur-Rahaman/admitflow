@@ -13,3 +13,5 @@ test-results/
 
 .references/
 AdmitFlow_Source.zip
+.vercel/
+debug.log

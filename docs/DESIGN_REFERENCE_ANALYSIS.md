@@ -6,4 +6,4 @@ The supplied written direction informed the application’s horizontal workspace
 
 Independent frame inspection of the Movexa clips and visual comparison against the running implementation remain pending.
 
-Phase 2 retried all five media files. Their transfer host could not be resolved. Direct reference comparison and new visual captures remain pending.
+Phase 2 retried all five media files. Their transfer host could not be resolved. Direct reference comparison remains pending. Recaptured the eight application screenshots from the Phase 2 production build.
