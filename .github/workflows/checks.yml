@@ -1,0 +1,60 @@
+name: Checks
+on: [push, pull_request]
+jobs:
+  backend:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: backend
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: python -m pip install -r requirements.txt
+      - run: alembic upgrade head
+      - run: python -m app.seed
+      - run: python -m pytest -q
+  frontend:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: frontend
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: npm install
+      - run: npm run build
+      - run: npm test
+  browser:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Start migrated demo API
+        working-directory: backend
+        run: |
+          python -m pip install -r requirements.txt
+          alembic upgrade head
+          python -m app.seed
+          python -m uvicorn app.main:app --host 127.0.0.1 --port 8000 > /tmp/admitflow-api.log 2>&1 &
+          curl --retry 20 --retry-connrefused --retry-delay 1 --fail http://127.0.0.1:8000/ready
+      - name: Build and test through Chromium
+        working-directory: frontend
+        env:
+          VITE_API_BASE_URL: http://127.0.0.1:8000
+          PLAYWRIGHT_BASE_URL: http://127.0.0.1:5173
+        run: |
+          npm install
+          npm run build
+          npx playwright install --with-deps chromium
+          npx vite preview --host 127.0.0.1 --port 5173 --strictPort > /tmp/admitflow-ui.log 2>&1 &
+          curl --retry 20 --retry-connrefused --retry-delay 1 --fail http://127.0.0.1:5173
+          npx playwright test
