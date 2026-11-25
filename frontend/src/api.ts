@@ -21,12 +21,25 @@ export class ApiError extends Error {
   }
 }
 export async function api<T>(path:string, options?:RequestInit):Promise<T> {
-  const response = await fetch(base+path, {...options, headers:options?.body ? {'Content-Type':'application/json'} : undefined})
-  if (!response.ok) {
-    const body = await response.json().catch(() => ({}))
-    throw new ApiError(body.detail || 'The server could not complete the request.')
+  const headers = new Headers(options?.headers)
+  if (options?.body && !headers.has('Content-Type')) headers.set('Content-Type', 'application/json')
+  let response: Response
+  try {
+    response = await fetch(base + path, {...options, headers})
+  } catch (error) {
+    if (options?.signal?.aborted) throw error
+    throw new ApiError('Could not reach the admissions service. Check your connection and try again.')
   }
-  return response.status === 204 ? undefined as T : response.json()
+  if (response.status === 204) return undefined as T
+  const payload = await response.json().catch(() => null)
+  if (!response.ok) {
+    const detail = payload?.detail
+    const issues = Array.isArray(detail) && detail.every(issue =>
+      issue && Array.isArray(issue.loc) && typeof issue.msg === 'string')
+    throw new ApiError(typeof detail === 'string' || issues ? detail : 'The admissions service could not complete the request. Try again.')
+  }
+  if (payload === null) throw new ApiError('The admissions service returned an unexpected response. Try again shortly.')
+  return payload as T
 }
 export function businessDay() {
   return new Intl.DateTimeFormat('en-CA', { timeZone:'Asia/Kolkata',year:'numeric',month:'2-digit',day:'2-digit' }).format(new Date())

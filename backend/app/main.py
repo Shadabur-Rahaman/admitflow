@@ -6,9 +6,11 @@ from collections import Counter
 from datetime import date, timedelta
 from typing import Annotated, Literal
 
-from fastapi import Depends, FastAPI, HTTPException, Query, Response
+from fastapi import Depends, FastAPI, HTTPException, Query, Request, Response
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
 from sqlalchemy import func, select, update
+from sqlalchemy.exc import OperationalError, SQLAlchemyError, TimeoutError as DatabaseTimeout
 from sqlalchemy.orm import Session as DatabaseSession
 
 from .catalog import DEPARTMENTS, DOCTORS, WARDS, lookups, today, utc_now
@@ -19,10 +21,18 @@ app = FastAPI(title="AdmitFlow", version="1.0")
 API = "/api/v1"
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=os.getenv("ALLOWED_ORIGINS", "http://localhost:5173,http://127.0.0.1:5173").split(","),
+    allow_origins=[origin.strip().rstrip("/") for origin in
+                   os.getenv("ALLOWED_ORIGINS", "http://localhost:5173,http://127.0.0.1:5173").split(",")
+                   if origin.strip()],
     allow_methods=["GET", "POST", "PATCH", "DELETE"],
     allow_headers=["Content-Type"],
 )
+
+
+@app.exception_handler(OperationalError)
+@app.exception_handler(DatabaseTimeout)
+async def database_unavailable(_request: Request, _error: Exception):
+    return JSONResponse(status_code=503, content={"detail": "Database unavailable. Try again shortly."})
 
 
 @app.middleware("http")
@@ -96,7 +106,6 @@ def health():
 
 @app.get("/ready")
 def ready(db: DB):
-    from sqlalchemy.exc import SQLAlchemyError
     try:
         db.execute(select(Patient.id).limit(1))
     except SQLAlchemyError:

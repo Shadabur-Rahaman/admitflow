@@ -6,6 +6,7 @@ import {motion,useReducedMotion} from 'motion/react'
 import {Area,AreaChart,CartesianGrid,ResponsiveContainer,Tooltip,XAxis,YAxis} from 'recharts'
 import {api,base,businessDay,displayDate,initials,type Catalog,type Page,type Patient,type Summary} from './api'
 import {Admission,Dialog} from './forms'
+import {ThemeControl} from './theme'
 
 const nav = [['/','Overview',LayoutGrid],['/patients','Patients',Users],['/wards','Wards',BedDouble],['/reports','Reports',ChartNoAxesColumn]] as const
 type Overlay = {kind:'new'} | {kind:'edit'|'detail'|'delete'|'discharge';patient:Patient}
@@ -25,7 +26,7 @@ function New({open}:{open:Open}) {
   return <button className="primary" onClick={()=>open({kind:'new'})}><Plus size={17}/> New Admission</button>
 }
 function DataState({error,retry}:{error:boolean;retry:()=>void}) {
-  return error?<div role="alert" className="panel empty">Unable to load data. <button onClick={retry}>Try again</button></div>:<div className="panel loading" role="status">Loading…</div>
+  return error?<div role="alert" className="panel empty">Could not load admissions. <button onClick={retry}>Try again</button></div>:<div className="panel loading" role="status">Loading…</div>
 }
 function Heading({title,description,children}:{title:string;description:string;children?:React.ReactNode}) {
   return <div className="heading"><div><h1>{title}</h1><p>{description}</p></div><div className="row">{children}</div></div>
@@ -35,7 +36,7 @@ function Metrics({summary}:{summary:Summary}) {
   return <div className="metrics">{metrics.map(([label,value,subtitle,Icon])=><section key={label} className="panel metric"><span className="metric-icon"><Icon size={19}/></span><span>{label}</span><strong>{value}</strong><small>{subtitle}</small></section>)}</div>
 }
 function Trend({summary}:{summary:Summary}) {
-  return <section className="panel"><h2>Admission Trends</h2><p className="muted">Patient admissions by date</p><div className="chart" role="img" aria-label={summary.trend.map(point=>point.date+': '+point.count).join(', ') || 'No admissions in this period'}><ResponsiveContainer width="100%" height="100%"><AreaChart data={summary.trend.map(point=>({...point,day:point.date.slice(5)}))} margin={{left:-20,right:12,top:12}}><CartesianGrid vertical={false} stroke="#eae7e2" strokeDasharray="4 4"/><XAxis dataKey="day" tickLine={false} axisLine={false}/><YAxis allowDecimals={false} tickLine={false} axisLine={false}/><Tooltip/><Area type="monotone" dataKey="count" name="Admissions" fill="#fce6de" stroke="#db5933" strokeWidth={2.5} isAnimationActive={false}/></AreaChart></ResponsiveContainer></div></section>
+  return <section className="panel"><h2>Admission Trends</h2><p className="muted">Patient admissions by date</p><div className="chart" role="img" aria-label={summary.trend.map(point=>point.date+': '+point.count).join(', ') || 'No admissions in this period'}><ResponsiveContainer width="100%" height="100%"><AreaChart data={summary.trend.map(point=>({...point,day:point.date.slice(5)}))} margin={{left:-20,right:12,top:12}}><CartesianGrid vertical={false} stroke="var(--line)" strokeDasharray="4 4"/><XAxis dataKey="day" tickLine={false} axisLine={false}/><YAxis allowDecimals={false} tickLine={false} axisLine={false}/><Tooltip contentStyle={{background:"var(--surface)",borderColor:"var(--line)",color:"var(--ink)"}} itemStyle={{color:"var(--ink)"}}/><Area type="monotone" dataKey="count" name="Admissions" fill="var(--chart-fill)" stroke="var(--chart-stroke)" strokeWidth={2.5} isAnimationActive={false}/></AreaChart></ResponsiveContainer></div></section>
 }
 function Distribution({title,entries}:{title:string;entries:[string,number][]}) {
   const highest=Math.max(1,...entries.map(([,number])=>number))
@@ -49,6 +50,7 @@ function PatientRows({rows,catalog,open,sort,onSort}:{rows:Patient[];catalog:Cat
   </tr>)}</tbody></table>
 }
 function Overview({summary,catalog,open}:{summary:Summary;catalog:Catalog;open:Open}) {
+  const activeShare=summary.total ? Math.round(summary.admitted / summary.total * 100) : 0
   const recent=useQuery({queryKey:['patients','recent'],queryFn:()=>api<Page>('/patients?page_size=5&sort_by=created_at')})
   return <>
     <Heading title="Hospital Overview" description="Monitor patient admissions and hospital operations.">
@@ -57,8 +59,12 @@ function Overview({summary,catalog,open}:{summary:Summary;catalog:Catalog;open:O
     <div className="overview-workspace">
       <aside className="overview-queue">
         <section className="panel priority">
-          <span>Active admissions</span>
-          <strong>{summary.admitted}</strong>
+          <div className="priority-content">
+            <div><h2>Active admissions</h2><strong>{summary.admitted}</strong><p>Of {summary.total} patient records</p></div>
+            <div className="admission-ring" style={{background: 'conic-gradient(var(--accent) '+activeShare+'%, var(--ring-track) 0)'}}>
+              <span aria-label={activeShare+'% of records are active'}>{activeShare}%</span>
+            </div>
+          </div>
           <New open={open}/>
         </section>
         <section className="panel queue-links">
@@ -180,8 +186,8 @@ export default function App() {
   const close=()=>open(null)
   const saved=(message:string)=>{close();setNotice(message);for(const key of ['patients','summary','reports'])void cache.invalidateQueries({queryKey:[key]})}
   const lookups=catalog.data
-  return <><a className="skip" href="#main" onClick={event=>{event.preventDefault();document.getElementById('main')?.focus()}}>Skip to content</a><header className="top"><div className="top-inner"><Link to="/" className="brand"><span><HeartPulse size={22}/></span>AdmitFlow</Link><nav aria-label="Primary navigation" className="desktop-nav">{nav.map(([href,label])=><NavLink key={href} to={href} end={href==='/'}>{label}</NavLink>)}</nav><div className="row top-actions"><button className="icon" aria-label="Search patients" onClick={()=>{navigate('/patients');requestAnimationFrame(()=>document.querySelector<HTMLInputElement>('.search input')?.focus())}}><Search size={18}/></button><span className="workspace"><span/> Demo workspace</span><New open={open}/></div></div></header>
-    <motion.main id="main" tabIndex={-1} initial={reduced?false:{opacity:0,y:6}} animate={{opacity:1,y:0}} transition={{duration:.2}}><div className="demo"><Activity size={15}/> Demonstration environment — fictional patient data only. Do not enter real patient information.</div>
+  return <><a className="skip" href="#main" onClick={event=>{event.preventDefault();document.getElementById('main')?.focus()}}>Skip to content</a><header className="top"><div className="top-inner"><Link to="/" className="brand"><span><HeartPulse size={22}/></span>AdmitFlow</Link><nav aria-label="Primary navigation" className="desktop-nav">{nav.map(([href,label])=><NavLink key={href} to={href} end={href==='/'}>{label}</NavLink>)}</nav><div className="row top-actions"><button className="icon" aria-label="Search patients" onClick={()=>{navigate('/patients');requestAnimationFrame(()=>document.querySelector<HTMLInputElement>('.search input')?.focus())}}><Search size={18}/></button><ThemeControl/><New open={open}/></div></div></header>
+    <motion.main id="main" tabIndex={-1} initial={reduced?false:{opacity:0,y:6}} animate={{opacity:1,y:0}} transition={{duration:.2}}><div className="demo"><Activity size={15}/> Sample records only. Never enter real patient information.</div>
     {lookups&&summary.data?<Routes><Route path="/" element={<Overview catalog={lookups} summary={summary.data} open={open}/>}/><Route path="/patients" element={<Directory catalog={lookups} summary={summary.data} open={open}/>}/><Route path="/wards" element={<Wards catalog={lookups} summary={summary.data} open={open}/>}/><Route path="/reports" element={<Reports catalog={lookups}/>}/><Route path="*" element={<Heading title="Page not found" description="Return to the overview to continue."><Link className="button" to="/">Overview</Link></Heading>}/></Routes>:<DataState error={catalog.isError||summary.isError} retry={()=>{void catalog.refetch();void summary.refetch()}}/>}</motion.main>
     <nav className="mobile-nav" aria-label="Mobile navigation">{nav.map(([href,label,Icon],i)=><div key={href}>{i===2&&<button className="mobile-admit" onClick={()=>open({kind:'new'})}><Plus size={21}/>Admit</button>}<NavLink to={href} end={href==='/'}><Icon size={19}/>{label}</NavLink></div>)}</nav>
     {overlay&&((overlay.kind==='delete'||overlay.kind==='discharge')?<Confirm key={overlay.kind} kind={overlay.kind} patient={overlay.patient} close={close} saved={saved}/>:lookups?overlay.kind==='detail'?<Details patient={overlay.patient} catalog={lookups} open={open} close={close}/>:<Admission key={overlay.kind} patient={overlay.kind==='new'?undefined:overlay.patient} catalog={lookups} close={close} saved={saved}/>:<Dialog title="New Patient Admission" close={close}><div className="dialog-body"><DataState error={catalog.isError} retry={()=>void catalog.refetch()}/></div></Dialog>)}

@@ -221,3 +221,94 @@ dialog::backdrop{background:#22181080}
   .directory-metrics .metric{grid-template-columns:minmax(0,1fr) auto}
   .directory-metrics .metric-icon{display:none}
 }
+/* Admissions theme and overview */
+:root {
+  color-scheme: light;
+  color: var(--ink);
+  --chart-fill: #f9dfd1;
+  --chart-stroke: #ae401e;
+  --ring-track: #55423c;
+  --priority-surface: #211d1c;
+  --focus: #9d3d20;
+  --priority-ink: #fff5ed;
+}
+:focus-visible { outline-color: var(--focus); }
+.theme-control select { font-size: 12px; min-height: 40px; padding-inline: 8px; }
+.priority {
+  background: linear-gradient(135deg, var(--priority-surface) 63%, #3b2720);
+  color: var(--priority-ink);
+  border: 0;
+  border-radius: 22px;
+  padding: 20px;
+}
+.priority-content { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+.priority-content h2, .priority-content p { font-size: 12px; color: #efd6c8; }
+.priority-content strong { display: block; font-size: clamp(35px, 4vw, 56px); line-height: 1; margin-block: 7px; }
+.admission-ring {
+  flex: 0 0 53px;
+  height: 53px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+}
+.admission-ring span {
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  width: 43px;
+  height: 43px;
+  background: var(--priority-surface);
+  font-weight: 700;
+}
+.priority > button { justify-self: stretch; margin-top: 9px; }
+.chart .recharts-cartesian-axis-tick-value { fill: var(--muted); }
+@media(max-width:850px) {
+  .top-actions { flex-wrap: nowrap; }
+  .top-actions .icon { min-width: 36px; width: 36px; min-height: 40px; }
+}
+@media(max-width:600px) {
+  .priority { padding: 19px; }
+  .admission-ring { flex-basis: 64px; height: 64px; }
+  .admission-ring span { width: 53px; height: 53px; }
+  .overview-queue { gap: 10px; }
+  .mobile-nav { border-radius: 18px 18px 0 0; box-shadow: 0 -6px 25px #16110d16; }
+}
+/* Both explicit and system dark modes use the same component tokens. */
+:root[data-theme="dark"]{color-scheme: dark; --ink:#f6ede6; --muted:#c4b7ae; --line:#51433c; --surface:#2a2421; --accent:#ff8757; --focus:#ffab86; --chart-fill:#59352a; --chart-stroke:#ff9b73; --ring-track:#55423c; --dark-bed:#1e1a18; --dark-inset:#362d28; --dark-hover:#43352e; background:#1e1a18;}
+:root[data-theme="dark"] button,:root[data-theme="dark"] .button,:root[data-theme="dark"] input,:root[data-theme="dark"] select,:root[data-theme="dark"] .skip,:root[data-theme="dark"] .menu,:root[data-theme="dark"] .menu button,:root[data-theme="dark"] dialog{color:var(--ink);background:var(--surface)}
+:root[data-theme="dark"] .top,:root[data-theme="dark"] .panel,:root[data-theme="dark"] .mobile-nav{background:var(--surface)}
+:root[data-theme="dark"] .desktop-nav,:root[data-theme="dark"] .demo,:root[data-theme="dark"] .dialog-head,:root[data-theme="dark"] .dialog-foot,:root[data-theme="dark"] .directory-panel .filters,:root[data-theme="dark"] .directory-panel .patients-table th,:root[data-theme="dark"] .patients-table th,:root[data-theme="dark"] .notice{background:var(--dark-inset);color:var(--muted)}
+:root[data-theme="dark"] .desktop-nav a.active,:root[data-theme="dark"] .mobile-nav a.active{background:var(--dark-hover);color:var(--ink)}
+:root[data-theme="dark"] button:hover,:root[data-theme="dark"] .button:hover,:root[data-theme="dark"] .menu button:hover,:root[data-theme="dark"] .action-menu summary:hover,:root[data-theme="dark"] .patients-table tr:hover td{background:var(--dark-hover)}
+:root[data-theme="dark"] .directory-panel .patients-table tbody tr:nth-child(even){background:var(--dark-inset)}
+:root[data-theme="dark"] .priority{background:linear-gradient(135deg,#181514 63%,#38241c);color:var(--priority-ink)}
+:root[data-theme="dark"] .directory-metrics .metric:nth-child(2){background:#191513;color:var(--priority-ink)}
+:root[data-theme="dark"] .admitted{background:#213b2d;color:#a3ecc1}
+:root[data-theme="dark"] .discharged{background:#28374b;color:#c6dcff}
+:root[data-theme="dark"] .error,:root[data-theme="dark"] .menu button.error{color:#ffaaa2}
+:root[data-theme="dark"] .danger,:root[data-theme="dark"] .danger:hover{background:#98352f;border-color:#98352f;color:#fff6f2}
+:root[data-theme="dark"] .loading{background:var(--dark-inset);animation:none}
+:root[data-theme="dark"] progress,:root[data-theme="dark"] progress::-webkit-progress-bar{background:var(--dark-hover)}
+:root[data-theme="dark"] .queue-links svg{color:var(--accent)}
+:root[data-theme="dark"] button.primary{background:var(--accent);color:#2b170e}
+:root[data-theme="dark"] button.primary:hover{background:#ffad8a;color:#2b170e}
+@media (prefers-color-scheme:dark) {
+:root[data-theme="system"]{color-scheme: dark; --ink:#f6ede6; --muted:#c4b7ae; --line:#51433c; --surface:#2a2421; --accent:#ff8757; --focus:#ffab86; --chart-fill:#59352a; --chart-stroke:#ff9b73; --ring-track:#55423c; --dark-bed:#1e1a18; --dark-inset:#362d28; --dark-hover:#43352e; background:#1e1a18;}
+:root[data-theme="system"] button,:root[data-theme="system"] .button,:root[data-theme="system"] input,:root[data-theme="system"] select,:root[data-theme="system"] .skip,:root[data-theme="system"] .menu,:root[data-theme="system"] .menu button,:root[data-theme="system"] dialog{color:var(--ink);background:var(--surface)}
+:root[data-theme="system"] .top,:root[data-theme="system"] .panel,:root[data-theme="system"] .mobile-nav{background:var(--surface)}
+:root[data-theme="system"] .desktop-nav,:root[data-theme="system"] .demo,:root[data-theme="system"] .dialog-head,:root[data-theme="system"] .dialog-foot,:root[data-theme="system"] .directory-panel .filters,:root[data-theme="system"] .directory-panel .patients-table th,:root[data-theme="system"] .patients-table th,:root[data-theme="system"] .notice{background:var(--dark-inset);color:var(--muted)}
+:root[data-theme="system"] .desktop-nav a.active,:root[data-theme="system"] .mobile-nav a.active{background:var(--dark-hover);color:var(--ink)}
+:root[data-theme="system"] button:hover,:root[data-theme="system"] .button:hover,:root[data-theme="system"] .menu button:hover,:root[data-theme="system"] .action-menu summary:hover,:root[data-theme="system"] .patients-table tr:hover td{background:var(--dark-hover)}
+:root[data-theme="system"] .directory-panel .patients-table tbody tr:nth-child(even){background:var(--dark-inset)}
+:root[data-theme="system"] .priority{background:linear-gradient(135deg,#181514 63%,#38241c);color:var(--priority-ink)}
+:root[data-theme="system"] .directory-metrics .metric:nth-child(2){background:#191513;color:var(--priority-ink)}
+:root[data-theme="system"] .admitted{background:#213b2d;color:#a3ecc1}
+:root[data-theme="system"] .discharged{background:#28374b;color:#c6dcff}
+:root[data-theme="system"] .error,:root[data-theme="system"] .menu button.error{color:#ffaaa2}
+:root[data-theme="system"] .danger,:root[data-theme="system"] .danger:hover{background:#98352f;border-color:#98352f;color:#fff6f2}
+:root[data-theme="system"] .loading{background:var(--dark-inset);animation:none}
+:root[data-theme="system"] progress,:root[data-theme="system"] progress::-webkit-progress-bar{background:var(--dark-hover)}
+:root[data-theme="system"] .queue-links svg{color:var(--accent)}
+:root[data-theme="system"] button.primary{background:var(--accent);color:#2b170e}
+:root[data-theme="system"] button.primary:hover{background:#ffad8a;color:#2b170e}
+}

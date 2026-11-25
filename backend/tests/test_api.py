@@ -119,3 +119,18 @@ def test_seed_is_repeatable(client, payload):
     seed.seed()
     seed.seed()
     assert client.get(PATIENTS).json()["total"] == 33
+
+
+
+def test_database_connection_error_keeps_json_and_cors(client, monkeypatch):
+    from sqlalchemy.exc import OperationalError
+
+    def unavailable(_):
+        raise OperationalError("SELECT 1", {}, OSError("connection closed"))
+
+    monkeypatch.setattr(main, "summarize", unavailable)
+    origin = "http://localhost:5173"
+    response = client.get(API + "/dashboard/summary", headers={"Origin": origin})
+    assert response.status_code == 503
+    assert response.json() == {"detail": "Database unavailable. Try again shortly."}
+    assert response.headers["access-control-allow-origin"] == origin
