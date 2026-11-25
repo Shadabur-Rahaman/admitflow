@@ -50,10 +50,44 @@ function PatientRows({rows,catalog,open,sort,onSort}:{rows:Patient[];catalog:Cat
 }
 function Overview({summary,catalog,open}:{summary:Summary;catalog:Catalog;open:Open}) {
   const recent=useQuery({queryKey:['patients','recent'],queryFn:()=>api<Page>('/patients?page_size=5&sort_by=created_at')})
-  return <><Heading title="Hospital Overview" description="Monitor patient admissions and hospital operations."><span className="date-label"><CalendarDays size={15}/>{displayDate(businessDay())}</span><New open={open}/></Heading>
-    <Metrics summary={summary}/><div className="dashboard-grid"><Trend summary={summary}/><Distribution title="Active Admissions by Ward" entries={Object.entries(catalog.wards).map(([id,name])=>[name,summary.wards[id].Admitted])}/></div>
-    <section className="panel table-panel"><div className="section-head"><h2>Recent Patients</h2><Link to="/patients">View all <ArrowRight size={15}/></Link></div>{recent.data?<PatientRows rows={recent.data.items} catalog={catalog} open={open}/>:<DataState error={recent.isError} retry={()=>void recent.refetch()}/>}</section>
-    <div className="dashboard-grid"><Distribution title="Patients by Department" entries={Object.entries(catalog.departments).map(([id,name])=>[name,summary.departments[id]||0])}/><section className="panel"><h2>Quick Actions</h2><div className="quick"><New open={open}/><Link className="button" to="/patients">View All Patients</Link><Link className="button" to="/patients?status=Admitted">View Active Admissions</Link><Link className="button" to="/patients?status=Discharged">View Discharged Patients</Link></div></section></div></>
+  return <>
+    <Heading title="Hospital Overview" description="Monitor patient admissions and hospital operations.">
+      <span className="date-label"><CalendarDays size={15}/>{displayDate(businessDay())}</span>
+    </Heading>
+    <div className="overview-workspace">
+      <aside className="overview-queue">
+        <section className="panel priority">
+          <span>Active admissions</span>
+          <strong>{summary.admitted}</strong>
+          <New open={open}/>
+        </section>
+        <section className="panel queue-links">
+          <h2>Patient activity</h2>
+          <Link to="/patients"><Users size={17}/><span>All patients</span><strong>{summary.total}</strong></Link>
+          <Link to="/patients?status=Discharged"><CircleCheck size={17}/><span>Discharged</span><strong>{summary.discharged}</strong></Link>
+          <Link to={'/patients?admission_from='+businessDay()+'&admission_to='+businessDay()}><CalendarDays size={17}/><span>Admitted today</span><strong>{summary.today}</strong></Link>
+        </section>
+      </aside>
+      <div className="overview-center">
+        <Trend summary={summary}/>
+        <Distribution title="Active Admissions by Ward" entries={Object.entries(catalog.wards).map(([id,name])=>[name,summary.wards[id].Admitted])}/>
+      </div>
+      <aside className="overview-recent">
+        <section className="panel recent-feed">
+          <div className="section-head"><h2>Recent Patients</h2><Link to="/patients" aria-label="View all patients"><ArrowRight size={17}/></Link></div>
+          {recent.data ? recent.data.items.length ? <ul>
+            {recent.data.items.map(patient=><li key={patient.id}>
+              <button className="identity" onClick={()=>open({kind:'detail',patient})}>
+                <Avatar name={patient.name}/><span><strong>{patient.name}</strong><small>{catalog.wards[patient.ward_id]}</small></span>
+              </button>
+              <Status patient={patient}/>
+            </li>)}
+          </ul> : <p className="muted">No recent admissions</p> : <DataState error={recent.isError} retry={()=>void recent.refetch()}/>}
+        </section>
+        <Distribution title="Patients by Department" entries={Object.entries(catalog.departments).map(([id,name])=>[name,summary.departments[id]||0])}/>
+      </aside>
+    </div>
+  </>
 }
 const filterKeys=['ward_id','department_id','doctor_id','status','admission_from','admission_to'] as const
 function FilterSelect({name,value,options,change}:{name:string;value:string;options:Record<string,string>;change:(value:string)=>void}) {
@@ -86,9 +120,9 @@ function Directory({catalog,summary,open}:{catalog:Catalog;summary:Summary;open:
     if(key==='department_id'&&next.has('doctor_id')&&catalog.doctors[next.get('doctor_id')!]?.department_id!==value&&value)next.delete('doctor_id')
     return next
   })
-  return <><Heading title="Patients" description="Search, filter and manage patient admissions."><Export query={params.toString()}/><New open={open}/></Heading><div className="directory-metrics"><Metrics summary={summary}/></div>
-    <section className="panel table-panel"><div className="section-head"><h2>Patient Directory</h2><span className="muted">{current?.total ?? '…'} matching records</span></div>
-      <div className="filters">
+  return <><Heading title="Patients" description="Search, filter and manage patient admissions."><Export query={params.toString()}/><New open={open}/></Heading><div className="directory-workspace"><aside className="directory-metrics" aria-label="Patient activity"><Metrics summary={summary}/></aside>
+    <section className="panel table-panel directory-panel"><div className="section-head"><h2>Patient Directory</h2><span className="muted">{current?.total ?? '…'} matching records</span></div>
+      <div className="filters directory-filters">
         <div className="search"><Search size={17}/><input aria-label="Search by patient name" placeholder="Search by patient name" value={search} maxLength={120} onChange={e=>setSearch(e.target.value)}/>{search&&<button className="icon" aria-label="Clear search" onClick={()=>setSearch('')}><X size={16}/></button>}</div>
         <FilterSelect name="Wards" value={params.get('ward_id')||''} options={catalog.wards} change={value=>update('ward_id',value)}/>
         <FilterSelect name="Departments" value={params.get('department_id')||''} options={catalog.departments} change={value=>update('department_id',value)}/>
@@ -101,7 +135,7 @@ function Directory({catalog,summary,open}:{catalog:Catalog;summary:Summary;open:
         <label>Rows per page <select value={size} onChange={e=>{setSize(+e.target.value);setPage(1)}}>{[5,10,25,50].map(n=><option key={n}>{n}</option>)}</select></label>
         <div className="row"><button className="icon" aria-label="Previous page" disabled={current.page===1} onClick={()=>setPage(current.page-1)}><ChevronLeft size={18}/></button><span>Page {current.page} of {Math.max(1,Math.ceil(current.total/current.page_size))}</span><button className="icon" aria-label="Next page" disabled={current.page*current.page_size>=current.total} onClick={()=>setPage(current.page+1)}><ChevronRight size={18}/></button></div>
       </div></>:<DataState error={list.isError} retry={()=>void list.refetch()}/>}
-    </section></>
+    </section></div></>
 }
 function Wards({catalog,summary,open}:{catalog:Catalog;summary:Summary;open:Open}) {
   return <><Heading title="Ward Management" description="Review active and completed admissions across wards."/><div className="ward-grid">{Object.entries(catalog.wards).map(([id,name])=><Ward key={id} id={id} name={name} counts={summary.wards[id]} open={open}/>)}</div></>
@@ -146,7 +180,7 @@ export default function App() {
   const close=()=>open(null)
   const saved=(message:string)=>{close();setNotice(message);for(const key of ['patients','summary','reports'])void cache.invalidateQueries({queryKey:[key]})}
   const lookups=catalog.data
-  return <><a className="skip" href="#main">Skip to content</a><header className="top"><div className="top-inner"><Link to="/" className="brand"><span><HeartPulse size={22}/></span>AdmitFlow</Link><nav aria-label="Primary navigation" className="desktop-nav">{nav.map(([href,label])=><NavLink key={href} to={href} end={href==='/'}>{label}</NavLink>)}</nav><div className="row top-actions"><button className="icon" aria-label="Search patients" onClick={()=>{navigate('/patients');requestAnimationFrame(()=>document.querySelector<HTMLInputElement>('.search input')?.focus())}}><Search size={18}/></button><span className="workspace"><span/> Demo workspace</span><New open={open}/></div></div></header>
+  return <><a className="skip" href="#main" onClick={event=>{event.preventDefault();document.getElementById('main')?.focus()}}>Skip to content</a><header className="top"><div className="top-inner"><Link to="/" className="brand"><span><HeartPulse size={22}/></span>AdmitFlow</Link><nav aria-label="Primary navigation" className="desktop-nav">{nav.map(([href,label])=><NavLink key={href} to={href} end={href==='/'}>{label}</NavLink>)}</nav><div className="row top-actions"><button className="icon" aria-label="Search patients" onClick={()=>{navigate('/patients');requestAnimationFrame(()=>document.querySelector<HTMLInputElement>('.search input')?.focus())}}><Search size={18}/></button><span className="workspace"><span/> Demo workspace</span><New open={open}/></div></div></header>
     <motion.main id="main" tabIndex={-1} initial={reduced?false:{opacity:0,y:6}} animate={{opacity:1,y:0}} transition={{duration:.2}}><div className="demo"><Activity size={15}/> Demonstration environment — fictional patient data only. Do not enter real patient information.</div>
     {lookups&&summary.data?<Routes><Route path="/" element={<Overview catalog={lookups} summary={summary.data} open={open}/>}/><Route path="/patients" element={<Directory catalog={lookups} summary={summary.data} open={open}/>}/><Route path="/wards" element={<Wards catalog={lookups} summary={summary.data} open={open}/>}/><Route path="/reports" element={<Reports catalog={lookups}/>}/><Route path="*" element={<Heading title="Page not found" description="Return to the overview to continue."><Link className="button" to="/">Overview</Link></Heading>}/></Routes>:<DataState error={catalog.isError||summary.isError} retry={()=>{void catalog.refetch();void summary.refetch()}}/>}</motion.main>
     <nav className="mobile-nav" aria-label="Mobile navigation">{nav.map(([href,label,Icon],i)=><div key={href}>{i===2&&<button className="mobile-admit" onClick={()=>open({kind:'new'})}><Plus size={21}/>Admit</button>}<NavLink to={href} end={href==='/'}><Icon size={19}/>{label}</NavLink></div>)}</nav>

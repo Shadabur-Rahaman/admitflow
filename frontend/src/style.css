@@ -156,3 +156,68 @@ dialog::backdrop{background:#17171968}
   .directory-metrics .metric small{display:none}
   .patients-table .identity small{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:18ch}
 }
+/* Admission workspace */
+:root{--ink:#27221e;--muted:#655c54;--line:#e5dcd2;--accent:#f16b39;--surface:#fffcf8;background:#f4efe8;font-family:"Segoe UI",system-ui,sans-serif}
+.top,.panel{background:var(--surface);box-shadow:none}
+.desktop-nav,.desktop-nav a{border-radius:999px}
+.desktop-nav a.active{background:#292421;color:#fffaf5}
+button.primary{background:var(--accent);border-color:var(--accent);color:#2b170e}
+button.primary:hover{background:#ff885b;border-color:#ff885b}
+.demo,.dialog-head,.dialog-foot{background:#eee5da}
+.overview-workspace,.directory-workspace{display:grid;gap:14px;align-items:start}
+.overview-workspace{grid-template-columns:minmax(210px,1fr) minmax(0,2.15fr) minmax(278px,1.35fr)}
+.overview-center,.overview-queue,.overview-recent{display:grid;gap:14px;min-width:0}
+.overview-workspace .chart{height:278px}
+.priority{display:grid;gap:7px;background:#272320;color:#fff6ef;border-color:#272320}
+.priority>span{color:#f0d9c9}
+.priority>strong{font-size:clamp(36px,4vw,62px);line-height:1.02;letter-spacing:-.055em}
+.priority>button{justify-self:start;border-radius:999px;margin-top:4px}
+.queue-links a{display:grid;grid-template-columns:18px minmax(0,1fr) auto;align-items:center;gap:8px;min-height:43px;border-bottom:1px solid var(--line)}
+.queue-links a:last-child,.recent-feed li:last-child{border-bottom:0}
+.queue-links svg{color:#a03f22}
+.recent-feed ul{list-style:none;padding:0;margin:0}
+.recent-feed li{display:flex;align-items:center;justify-content:space-between;gap:6px;border-bottom:1px solid var(--line);padding:6px 0}
+.recent-feed .identity{min-width:0;text-align:left;overflow-wrap:anywhere}
+.recent-feed .status{flex-shrink:0}
+.directory-workspace{grid-template-columns:minmax(190px,1fr) minmax(0,5fr)}
+.directory-metrics .metrics{grid-template-columns:minmax(0,1fr);gap:7px}
+.directory-metrics .metric{position:static;grid-template-columns:auto minmax(0,1fr) auto;align-items:center;gap:8px;padding:10px;border-radius:12px}
+.directory-metrics .metric-icon{position:static;width:29px;height:29px;margin:0}
+.directory-metrics .metric strong{font-size:21px}
+.directory-metrics .metric small{display:none}
+.directory-metrics .metric:nth-child(2){background:#272320;color:#fff6ef;border-color:#272320}
+.directory-panel .filters{padding:9px;border-radius:13px;background:#f2ece4}
+.directory-panel .search,.directory-panel .search input{min-width:0}
+.directory-panel .search input{width:100%}
+.directory-panel .patients-table th{background:#eee7de}
+.directory-panel .patients-table tbody tr:nth-child(even){background:#fbf5ed}
+.directory-panel .patients-table td{padding-block:8px}
+.drawer,.modal{background:var(--surface)}
+.drawer{width:min(100%,510px)}
+dialog::backdrop{background:#22181080}
+.toast{background:#272320;color:#fff6ef}
+@media(max-width:1150px){
+  .overview-workspace{grid-template-columns:minmax(180px,1fr) minmax(0,2.35fr)}
+  .overview-recent{grid-column:1/-1;grid-template-columns:repeat(2,minmax(0,1fr))}
+}
+@media(max-width:850px){
+  .directory-workspace{grid-template-columns:minmax(0,1fr)}
+  .directory-metrics{order:1}
+  .directory-metrics .metrics{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .directory-panel .patients-table tbody tr:nth-child(even){background:var(--surface)}
+  .directory-panel .patients-table tr{background:var(--surface);border-radius:16px}
+  .directory-panel .patients-table td{padding-block:3px}
+  .mobile-nav{background:var(--surface)}
+  .mobile-nav .mobile-admit{width:48px;min-height:48px;align-self:center;margin-inline:3px;border-radius:50%;color:#26160e}
+}
+@media(max-width:600px){
+  .overview-workspace,.overview-recent{grid-template-columns:minmax(0,1fr)}
+  .overview-workspace .chart{height:215px}
+  .priority{padding:17px}
+  .priority>button{justify-self:stretch}
+  .directory-panel .date-filters{display:grid;grid-template-columns:repeat(2,minmax(0,1fr))}
+  .directory-panel .date-filters label{display:grid;min-width:0;gap:3px}
+  .directory-panel .date-filters input{width:100%;min-width:0}
+  .directory-metrics .metric{grid-template-columns:minmax(0,1fr) auto}
+  .directory-metrics .metric-icon{display:none}
+}
