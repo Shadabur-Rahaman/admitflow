@@ -1,24 +1,23 @@
 import {useState} from 'react'
+import {Monitor, Moon, Sun} from 'lucide-react'
+import {ChoiceMenu} from './ChoiceMenu'
 
-const storageKey = 'admitflow-theme'
-const modes = ['system', 'light', 'dark'] as const
-type Mode = typeof modes[number]
+const modes = {system:Monitor,light:Sun,dark:Moon}
+type Mode = keyof typeof modes
 
 export function ThemeControl() {
-  const [mode, setMode] = useState<Mode>(() => {
-    const current = document.documentElement.dataset.theme
-    return current === 'light' || current === 'dark' ? current : 'system'
+  const [mode,setMode]=useState<Mode>(()=>{
+    const current=document.documentElement.dataset.theme
+    return current==='light'||current==='dark'?current:'system'
   })
+  const CurrentIcon=modes[mode]
 
-  return <label className="theme-control">
-    <span className="sr-only">Appearance</span>
-    <select value={mode} onChange={event => {
-      const next = event.currentTarget.value as Mode
+  return <ChoiceMenu name="Appearance" value={mode} icon={<CurrentIcon size={18}/>}
+    choices={Object.entries(modes).map(([value,Icon])=>({value,label:value[0].toUpperCase()+value.slice(1),icon:<Icon size={16}/>}))}
+    change={value=>{
+      const next=value as Mode
       setMode(next)
-      document.documentElement.dataset.theme = next
-      try { localStorage.setItem(storageKey, next) } catch { /* The choice still applies for this visit. */ }
-    }}>
-      {modes.map(value => <option key={value} value={value}>{value[0].toUpperCase() + value.slice(1)}</option>)}
-    </select>
-  </label>
+      document.documentElement.dataset.theme=next
+      try {localStorage.setItem('admitflow-theme',next)} catch {}
+    }}/>
 }

@@ -4,7 +4,7 @@ import {z} from 'zod'
 import {X} from 'lucide-react'
 import {ApiError,api,businessDay,type Catalog,type Input,type Patient} from './api'
 
-export function Dialog({title,close,drawer=false,children}:{title:string;close:()=>void;drawer?:boolean;children:ReactNode}) {
+export function Dialog({title,close,drawer=false,wide=false,children}:{title:string;close:()=>void;drawer?:boolean;wide?:boolean;children:ReactNode}) {
   const ref = useRef<HTMLDialogElement>(null)
   useEffect(()=>{
     const element = ref.current!
@@ -13,7 +13,7 @@ export function Dialog({title,close,drawer=false,children}:{title:string;close:(
     document.body.style.overflow = 'hidden'
     return ()=>{element.close();document.body.style.overflow=previous}
   },[])
-  return <dialog ref={ref} className={drawer?'drawer':'modal'} aria-labelledby="dialog-title" onCancel={event=>{event.preventDefault();close()}}>
+  return <dialog ref={ref} className={wide?'drawer drawer-wide':drawer?'drawer':'modal'} aria-labelledby="dialog-title" onCancel={event=>{event.preventDefault();close()}}>
     <header className="dialog-head"><h2 id="dialog-title">{title}</h2><button className="icon" aria-label="Close" onClick={close}><X size={20}/></button></header>
     {children}
   </dialog>
@@ -66,15 +66,16 @@ export function Admission({patient,catalog,close,saved}:{patient?:Patient;catalo
     <form noValidate onSubmit={handleSubmit(submit)} className="admission-form">
       <div className="dialog-body">
         <p className="muted">Use fictional information in this demo workspace.</p>
-        <h3>Patient information</h3>
+        <section className="form-section"><h3>Patient information</h3>
         {field('name','Patient name',<input autoFocus placeholder="e.g. Amara Patel" {...register('name')} aria-invalid={!!errors.name} aria-describedby={errors.name?'name-error':undefined}/>)}
         <div className="form-grid">{field('age','Age',<input type="number" min="0" max="120" {...register('age',{valueAsNumber:true})} aria-invalid={!!errors.age} aria-describedby={errors.age?'age-error':undefined}/>)}
         {select('gender','Gender',Object.fromEntries(catalog.genders.map(value=>[value,value])))}</div>
-        <h3>Admission information</h3>
+        </section><section className="form-section"><h3>Admission information</h3>
         {select('ward_id','Ward',catalog.wards)}
         {select('department_id','Department',catalog.departments,()=>setValue('doctor_id','',{shouldDirty:true}))}
         {select('doctor_id','Doctor',Object.fromEntries(Object.entries(catalog.doctors).filter(([,doc])=>doc.department_id===department).map(([id,doc])=>[id,doc.name])))}
         {field('admission_date','Admission date',<input type="date" max={businessDay()} {...register('admission_date')} aria-invalid={!!errors.admission_date} aria-describedby={errors.admission_date?'admission_date-error':undefined}/>)}
+        </section>
         {serverError&&<p role="alert" className="error">{serverError}</p>}
         {discard&&<div role="alert" className="notice">Discard your unsaved changes? <button type="button" onClick={()=>setDiscard(false)}>Keep editing</button> <button type="button" onClick={close}>Discard</button></div>}
       </div>

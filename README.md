@@ -16,9 +16,15 @@ AdmitFlow manages a hospital admissions queue for the DScribe Round 1 assignment
 
 ## Screenshots
 
+The screenshots use a freshly seeded SQLite database with fictional admissions.
+
 ![AdmitFlow hospital overview](screenshots/desktop-overview.png)
 
-[Patient directory](screenshots/desktop-patients.png) · [New admission](screenshots/admission-drawer.png) · [Patient details](screenshots/patient-details.png) · [Wards](screenshots/ward-management.png) · [Reports](screenshots/reports.png) · [Mobile overview](screenshots/mobile-overview.png) · [Mobile directory](screenshots/mobile-patients.png)
+- [Patient directory](screenshots/desktop-patients.png), [date filters](screenshots/admission-filters.png), and [patient details](screenshots/patient-details.png)
+- [Ward board](screenshots/ward-management.png) and [reports](screenshots/reports.png)
+- [New admission](screenshots/admission-drawer.png) and [confirmation](screenshots/confirmation.png)
+- [Tablet overview](screenshots/tablet-overview.png), [mobile overview](screenshots/mobile-overview.png), and [mobile patient directory](screenshots/mobile-patients.png)
+- [Dark overview](screenshots/dark-overview.png) and [dark admission drawer](screenshots/dark-admission-drawer.png)
 
 ## Local setup
 
@@ -56,8 +62,8 @@ GitHub Actions builds the frontend for GitHub Pages under the repository base pa
 
 Render uses the existing `render.yaml` blueprint. Set its `DATABASE_URL` secret to the AdmitFlow Neon connection string and `ALLOWED_ORIGINS` to the Pages origin without the repository path. The start command runs Alembic and initializes catalog lookups before serving. The seeded patient records are separate from catalog initialization.
 
-Use [API readiness](https://admitflow-api.onrender.com/ready) to check database connectivity. See the [visual comparison](docs/APPEARANCE_AND_RELIABILITY.md) for the redesigned workspace.
+Use [API readiness](https://admitflow-api.onrender.com/ready) to check database connectivity. The public demo uses its existing database, so its records may differ from the screenshots.
 
 The public demonstration has no login. Access control, audit trails, retention controls and operational safeguards would be required before a deployment handling real patient information.
 
-See [design notes](docs/DESIGN_REFERENCE_ANALYSIS.md) and the [Round 2 interview guide](docs/ROUND_2_INTERVIEW_GUIDE.md).
+See the [Round 2 interview guide](docs/ROUND_2_INTERVIEW_GUIDE.md).
